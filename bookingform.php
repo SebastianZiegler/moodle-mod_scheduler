@@ -72,6 +72,28 @@ class scheduler_booking_form extends moodleform {
             $mform->closeHeaderBefore('bookingcaptcha');
         }
 
+        if ($scheduler->uses_bookingitems()){
+            //check allready booked items
+            $bookedItems = $this->slot->get_booked_items();
+            //get all items
+            $allItems  = explode(";",$this->slot->availiblebookingitems);
+
+            $availibaleItems = array();
+            //show availible items
+            foreach($allItems as $item){
+                if(!in_array($item,$bookedItems)){
+                    //array_push($availibaleItems,$item);
+                    $availibaleItems[$item]=$item;
+                }
+            }
+
+            $select = $mform->addElement('select', 'bookeditem', get_string('bookeditem','scheduler'), $availibaleItems);
+
+
+        }
+
+
+
         $submitlabel = $this->existing ? null : get_string('confirmbooking', 'scheduler');
         $this->add_action_buttons(true, $submitlabel);
     }
@@ -120,6 +142,15 @@ class scheduler_booking_form extends moodleform {
             file_save_draft_area_files($formdata->studentfiles, $scheduler->context->id,
                                        'mod_scheduler', 'studentfiles', $appointment->id,
                                        $this->uploadoptions);
+        }
+        if ($scheduler->uses_bookingitems()) {
+            $appointment->bookeditem = $formdata->bookeditem;   
+			
+			//echo "!!!!!!!"."<pre>".var_dump($formdata->bookeditem)."</pre>";
+            
+            //file_save_draft_area_files($formdata->studentfiles, $scheduler->context->id,
+            //                           'mod_scheduler', 'studentfiles', $appointment->id,
+            //                           $this->uploadoptions);
         }
         $appointment->save();
     }

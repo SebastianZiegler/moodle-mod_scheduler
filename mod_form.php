@@ -53,6 +53,11 @@ class mod_scheduler_mod_form extends moodleform_mod {
         $mform->addRule('staffrolename', get_string('error'), 'maxlength', 255);
         $mform->addHelpButton('staffrolename', 'staffrolename', 'scheduler');
 
+        $mform->addElement('text', 'bookingitems', get_string('bookingitems', 'scheduler'), array('size' => '255'));
+        $mform->setType('bookingitems', PARAM_TEXT);
+        $mform->addRule('bookingitems', get_string('error'), 'maxlength', 255);
+        //$mform->addHelpButton('bookingitems', 'bookingitems', 'scheduler');
+
         $modegroup = array();
         $modegroup[] = $mform->createElement('static', 'modeintro', '', get_string('modeintro', 'scheduler'));
 

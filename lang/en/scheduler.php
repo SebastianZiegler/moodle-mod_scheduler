@@ -493,6 +493,8 @@ $string['yourappointmentnote'] = 'Comments for your eyes';
 $string['yourslotnotes'] = 'Comments on the meeting';
 $string['yourstudentnote'] = 'Your message';
 $string['yourtotalgrade'] = 'Your total grade in this activity is <strong>{$a}</strong>.';
+$string['bookingitems'] = 'Availible items for optional booking.';
+
 
 
 /* ***********  Help strings from here on ************ */
@@ -533,6 +535,8 @@ $string['notifications_help'] = 'When this option is enabled, teachers and stude
 
 $string['staffrolename_help'] = '
 The label for the role who attends students. This is not necessarily a "teacher".';
+
+$string['bookingitems_help'] = 'List the items that should be possible to select at an appointment. Note that every item is only one time available per appointment. Separate the items with a semicolon (Item A;Item B ...).';
 
 $string['guardtime_help'] = 'A guard time prevents students from changing their booking shortly before the appointment.
 <p>If the guard time is enabled and set to, for example, 2 hours, then students will be unable to book a slot that starts in less than 2 hours time from now,

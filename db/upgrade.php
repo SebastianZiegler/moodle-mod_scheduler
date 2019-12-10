@@ -321,5 +321,30 @@ function xmldb_scheduler_upgrade($oldversion=0) {
         // Scheduler savepoint reached.
         upgrade_mod_savepoint(true, 2017040100, 'scheduler');
     }
+
+    if ($oldversion < 2019111900) {
+        $table = new xmldb_table('scheduler');
+
+        $field = new xmldb_field('bookingitems', XMLDB_TYPE_TEXT, null, null, null, null, null, 'usecaptcha');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $table = new xmldb_table('scheduler_slots');
+
+        $field = new xmldb_field('availiblebookingitems', XMLDB_TYPE_TEXT, null, null, null, null, null, null);
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $table = new xmldb_table('scheduler_appointment');
+        $field = new xmldb_field('bookeditem', XMLDB_TYPE_TEXT, null, null, null, null, null, 'studentnoteformat');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+         // Scheduler savepoint reached.
+         upgrade_mod_savepoint(true, 2019111900, 'scheduler');
+
+    }
     return true;
 }

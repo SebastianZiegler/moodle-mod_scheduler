@@ -83,6 +83,9 @@ class scheduler_slot extends mvc_child_record_model {
                     $appointment->teachernoteformat = $template->teachernoteformat;
                     $this->distribute_file_area('teachernote', $template->id, $appointment->id);
                 }
+				if($scheduler->uses_bookingitems()){
+						$appointment->bookeditem = $template->bookeditem;
+				}
                 $appointment->save();
             }
         }
@@ -302,6 +305,45 @@ class scheduler_slot extends mvc_child_record_model {
         $this->appointments->delete_children();
         $this->clear_calendar();
     }
+	
+    /**
+     * get Items that are avialible for booking
+     */
+    public function get_booked_items(){
+		$result = array();
+		if($this->get_scheduler()->uses_bookingform()){
+			foreach($this->appointments->get_children() as $appointment){
+				if($appointment->bookeditem != null){
+					$result[$appointment->bookeditem]=$appointment->bookeditem;
+				}
+			}
+		}
+		return $result;
+	}
+	
+    /**
+     * get Items that are avialible for booking
+     */
+    public function get_availible_bookingitems($exclude_booked = false) {
+		
+		$temp=array();
+		if($this->availiblebookingitems != null){
+			foreach(explode(";", $this->availiblebookingitems) as $item){
+			   $temp[$item]=$item;
+			}
+		}
+		
+		if($this->get_scheduler()->uses_bookingform() && $exclude_booked){
+			foreach($this->appointments->get_children() as $appointment){
+				if (($key = array_search($appointment->bookeditem, $temp)) !== false) {
+					unset($temp[$key]);
+				}
+			}
+		}
+		
+		return $temp;
+    }
+	
 
 
     /* The event code is SSstu (for a student event) or SSsup (for a teacher event).

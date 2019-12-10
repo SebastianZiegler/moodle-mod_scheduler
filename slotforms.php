@@ -111,6 +111,13 @@ abstract class scheduler_slotform_base extends moodleform {
             $mform->setDefault('teacherid', $USER->id);
             $mform->setType('teacherid', PARAM_INT);
         }
+        //custom items
+        $mform->addElement('text', 'availiblebookingitems', get_string('bookingitems', 'scheduler'), array('size' => '255'));
+        $mform->setType('availiblebookingitems', PARAM_TEXT);
+        $mform->addRule('availiblebookingitems', get_string('error'), 'maxlength', 255);
+        $mform->setDefault('availiblebookingitems', $this->scheduler->bookingitems);
+        $mform->addHelpButton('availiblebookingitems', 'bookingitems', 'scheduler');
+
 
     }
 
@@ -255,6 +262,24 @@ class scheduler_editslot_form extends scheduler_slotform_base {
             $repeatarray[] = $mform->createElement('editor', 'teachernote_editor', get_string('teachernote', 'scheduler'),
                                                    array('rows' => 3, 'columns' => 60), $this->noteoptions);
         }
+        
+        if ($this->scheduler->uses_bookingitems()){
+			
+			$items = array('0' => get_string('choosedots'));
+			$availibleItems = array();
+			if($this->slotid != null){
+				$availibleItems = array_merge($items, $this->scheduler->get_slot($this->slotid)->get_availible_bookingitems());
+			}
+			else{
+				$temp = array();
+				foreach(explode(";",$this->scheduler->bookingitems) as $item){
+					$temp[$item]=$item;
+				}
+				$availibleItems = array_merge($items, $temp);
+			}
+			
+            $repeatarray[] = $mform->createElement('select','bookeditem',get_string('bookeditem', 'scheduler'),$availibleItems) ;
+        }
 
         // Tickbox to remove the student
         $repeatarray[] = $mform->createElement('advcheckbox', 'deletestudent', '', get_string('deleteonsave', 'scheduler'));
@@ -320,6 +345,17 @@ class scheduler_editslot_form extends scheduler_slotform_base {
                 }
             }
         }
+		
+		//Check wether items have been selected several times
+		for ($i = 0; $i < $data['appointment_repeats']; $i++) {
+            for ($j = 0; $j < $i; $j++) {
+				if($data['deletestudent'][$j] == 0 && $data['studentid'][$i] > 0 
+				&& $data['bookeditem'][$i] == $data['bookeditem'][$j]){
+					$errors['bookeditem['.$i.']'] = get_string('bookeditemmultiselect', 'scheduler');
+                    $errors['bookeditem['.$j.']'] = get_string('bookeditemmultiselect', 'scheduler');
+				}
+			}
+		}
 
         if (!isset($data['ignoreconflicts'])) {
             /* Avoid overlapping slots by warning the user */
@@ -370,6 +406,8 @@ class scheduler_editslot_form extends scheduler_slotform_base {
             $data->appointid[$i] = $appointment->id;
             $data->studentid[$i] = $appointment->studentid;
             $data->attended[$i] = $appointment->attended;
+			
+            $data->bookeditem[$i] = $appointment->bookeditem;
 
             $draftid = file_get_submitted_draft_itemid('appointmentnote');
             $currenttext = file_prepare_draft_area($draftid, $context->id,
@@ -418,6 +456,9 @@ class scheduler_editslot_form extends scheduler_slotform_base {
         $slot->appointmentlocation = $data->appointmentlocation;
         $slot->hideuntil = $data->hideuntil;
         $slot->emaildate = $data->emaildate;
+        $slot->availiblebookingitems = $data->availiblebookingitems;
+		
+		
         $slot->timemodified = time();
 
         if (!$slotid) {
@@ -466,6 +507,9 @@ class scheduler_editslot_form extends scheduler_slotform_base {
                             'mod_scheduler', 'teachernote', $app->id,
                             $this->noteoptions, $editor['text']);
                     $app->teachernoteformat = $editor['format'];
+                }
+				if ($this->scheduler->uses_bookingform()) {                  
+					$app->bookeditem=$data->bookeditem[$i];
                 }
             }
         }
@@ -598,7 +642,7 @@ class scheduler_addsession_form extends scheduler_slotform_base {
         $starttime = $data['starthour'] * 60 + $data['startminute'];
         $endtime = $data['endhour'] * 60 + $data['endminute'];
         if ($starttime > $endtime) {
-            $errors['timerange'] = get_string('negativerange', 'scheduler');
+            $errors['endtime'] = get_string('negativerange', 'scheduler');
         }
 
         // First slot is in the past.
